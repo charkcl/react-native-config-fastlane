@@ -1,3 +1,6 @@
+## Motivation
+Provide a template that has RN/typescript/fastlane/config for the community to start. Byebye to the days of 300+ lines of script to build ios/android with hard-coded in config. Bring some 12 factor love to your mobile apps!
+
 ## Development environment setup
 Install Node(10.15)
 
@@ -37,8 +40,14 @@ This project uses [react-native-config](https://github.com/luggit/react-native-c
 4. Secrets are usually kept in `.env.secret` and should NEVER be git committed
 
 ## Fastlane
+Please make sure you update `fastlane/Fastfile` with the correct config and syntax according to [Fastlane docs](https://docs.fastlane.tools/)
+
 Fastlane will load config from `/config.*` file into `.env`
 Secrets are to be provided in command line
 
 + `MYAPP_CONFIG=prod yarn fastlane:ios-ci`
 + `MYAPP_KEYSTORE_PASSWORD=xxxxx MYAPP_CONFIG=prod yarn fastlane:android-ci`
+
+#### References:
++ [2018 React Native DevOps Guide](https://medium.com/@tgpski/react-native-devops-guide-2d8e4755ebee)
++ [2017 Fastlane Devops with RN](https://medium.com/react-native-training/fastlane-for-react-native-ios-android-app-devops-8ca85bee614e)
