@@ -15,3 +15,5 @@ ANDROID_APP_ID=com.chark.myapp.fastlane
 # keystore file should be relative to ./android/app
 MYAPP_RELEASE_STORE_FILE=my-app-prod-key.keystore
 MYAPP_RELEASE_KEY_ALIAS=my-app-prod-alias
+# backend api
+API_BASE_URL=https://www.omdbapi.com/
