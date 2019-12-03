@@ -6,11 +6,14 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "fastlane:ios-ci": "fastlane ios ci",
+    "fastlane:android-ci": "fastlane android ci"
   },
   "dependencies": {
     "react": "16.9.0",
-    "react-native": "0.61.4"
+    "react-native": "0.61.4",
+    "react-native-config": "^0.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

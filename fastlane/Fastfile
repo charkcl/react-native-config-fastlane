@@ -1,0 +1,143 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions (or run `fastlane actions`)
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "2.113.0"
+
+# Support ENV variables as options or lane parameters
+fastlane_require 'dotenv'
+
+# Import common function
+import 'Commonfile'
+
+# iOS Setup #
+# XCODE_AUTO_CODE_SIGN = false.freeze
+XCODE_AUTO_CODE_SIGN = true.freeze
+
+default_platform(:ios)
+
+before_all do |lane, options|
+  debug_options(options, true)
+  MYAPP_ENV = ENV["MYAPP_CONFIG"]
+  if MYAPP_ENV == nil
+    UI.user_error!("Please provide MYAPP_CONFIG=xxx when running this command.")
+  end
+  copy_env_for_build_type(MYAPP_ENV)
+  Dotenv.overload("../.env")
+  XCODE_BUNDLE_ID = ENV['PRODUCT_BUNDLE_IDENTIFIER']
+  XCODE_PROJECT_NAME = ENV['XCODE_PROJECT_NAME']
+  XCODE_PROJECT_PATH = "./ios/#{ENV['XCODE_PROJECT_NAME']}.xcodeproj"
+  XCODE_WORKSPACE_PATH = "./ios/#{ENV['XCODE_PROJECT_NAME']}.xcworkspace"
+  OUTPUT_SUFFIX=ENV['OUTPUT_SUFFIX']
+  VERSION_NUMBER=get_version_number(xcodeproj: "ios/#{ENV['XCODE_PROJECT_NAME']}.xcodeproj", target: "#{ENV['XCODE_SCHEME']}")
+end
+
+
+platform :ios do
+  desc "Private lane: Update display name, team id, project plist and bundle id"
+  private_lane :update_project_info do
+    update_project_team(
+      path: XCODE_PROJECT_PATH,
+      teamid: ENV['XCODE_TEAM_ID']
+    )
+    update_info_plist(
+      xcodeproj: XCODE_PROJECT_PATH,
+      plist_path: "./#{XCODE_PROJECT_NAME}/Info.plist",
+      display_name: ENV['APP_DISPLAY_NAME']
+    )
+    update_app_identifier(
+      xcodeproj: XCODE_PROJECT_PATH, # Optional path to xcodeproj, will use the first .xcodeproj if not set
+      plist_path: "./#{XCODE_PROJECT_NAME}/Info.plist", # Path to info plist file, relative to xcodeproj
+      app_identifier: XCODE_BUNDLE_ID
+    )
+  end
+
+  desc "Private lane: Build a release ipa based on build env"
+  private_lane :ios_build do
+    build_ios_app(
+      clean: true,
+      workspace: XCODE_WORKSPACE_PATH,
+      scheme: ENV['XCODE_SCHEME'],
+      configuration: 'Release',
+      output_directory: './build',
+      output_name: "#{ENV['OUTPUT_NAME']}_iOS-#{VERSION_NUMBER}#{OUTPUT_SUFFIX}.ipa",
+      include_symbols: false,
+      include_bitcode: false,
+      export_options: {
+        method: "development",
+        provisioningProfiles: {
+          XCODE_BUNDLE_ID => ENV['XCODE_PROVISIONING_PROFILE_UUID']
+        },
+        teamID: ENV['XCODE_TEAM_ID']
+      }
+    )
+    puts "=======IPA OUTPUT IS HERE: #{lane_context[SharedValues::IPA_OUTPUT_PATH]}======="
+  end
+
+  desc "CI fastlane command with build env"
+  lane :ci do |options|
+    automatic_code_signing(
+      path: XCODE_PROJECT_PATH,
+      use_automatic_signing: XCODE_AUTO_CODE_SIGN,
+      team_id: ENV['XCODE_TEAM_ID'],
+      bundle_identifier: XCODE_BUNDLE_ID,
+      code_sign_identity: ENV['XCODE_CODE_SIGN_ID'],
+      profile_uuid: ENV['XCODE_PROVISIONING_PROFILE_UUID']
+    )
+    increment_build_number(
+      xcodeproj: XCODE_PROJECT_PATH,
+      build_number: number_of_commits
+    )
+    puts "=======SUFFIX: #{OUTPUT_SUFFIX}======="
+    update_project_info
+    ios_build
+  end
+end
+
+platform :android do
+  desc "Private lane: Move apk to build directory"
+  private_lane :move_apk do |options|
+    BUILD_APK_LOCATION = options[:output_apk]
+    Dir.chdir ".." do
+      PROJECT_PATH = Dir.pwd
+      COPY_APK_PATH = "#{PROJECT_PATH}/android/app/#{ENV['OUTPUT_NAME']}_Android-#{VERSION_NUMBER}#{OUTPUT_SUFFIX}.apk"
+      sh("cp #{BUILD_APK_LOCATION} #{COPY_APK_PATH}")
+      puts "=======APK OUTPUT IS HERE: #{COPY_APK_PATH}======="
+    end
+  end
+
+  desc "CI fastlane command with build env"
+  lane :ci do |options|
+    KEYSTORE_PWD = ENV["MYAPP_KEYSTORE_PASSWORD"]
+    if KEYSTORE_PWD == nil
+      UI.user_error!("Please provide MYAPP_KEYSTORE_PASSWORD=xxx when running this command.")
+    end
+    gradle(task: 'clean', project_dir: "./android/")
+    gradle(
+      task: "assemble",
+      project_dir: "./android/",
+      build_type: "Release",
+      properties: {
+        "android.injected.signing.key.alias" => ENV['MYAPP_RELEASE_KEY_ALIAS'],
+        "versionCode" => number_of_commits,
+      }
+    )
+    move_apk(output_apk: "#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}")
+  end
+end

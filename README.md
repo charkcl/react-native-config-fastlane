@@ -26,3 +26,19 @@ Please refer to https://facebook.github.io/react-native/docs/getting-started
 
 ## Typescript
 This project is initiated with `npx --ignore-existing react-native init <project-name> --template react-native-template-typescript`
+
+## Secrets & Environment Variables
+This project uses [react-native-config](https://github.com/luggit/react-native-config) to expose config variables to your javascript code in React Native. The `.env` files are ignored by git keeping those secrets out of your repo.
+
+#### Get started for local development:
+1. Copy `.env.example` to `.env.local` or `.env`
+2. Add your config variables
+3. Follow instructions at [https://github.com/luggit/react-native-config#setup](https://github.com/luggit/react-native-config#setup)
+4. Secrets are usually kept in `.env.secret` and should NEVER be git committed
+
+## Fastlane
+Fastlane will load config from `/config.*` file into `.env`
+Secrets are to be provided in command line
+
++ `MYAPP_CONFIG=prod yarn fastlane:ios-ci`
++ `MYAPP_KEYSTORE_PASSWORD=xxxxx MYAPP_CONFIG=prod yarn fastlane:android-ci`

@@ -1,0 +1,22 @@
+#####################
+#####################
+##### FUNCTIONS #####
+#####################
+#####################
+
+def debug_options(options, print)
+  # Prints out all options, useful for debugging with ci
+
+  if print then
+    puts options.inspect
+  end
+end
+
+def copy_env_for_build_type(buildType)
+  # Copies env files to project root
+  # filename format: config.[buildType]
+  #
+  # example: $PROJECT_ROOT/config/config.uat
+  dir = File.expand_path('..', Dir.pwd)
+  sh('cp', '%s/config/config.%s' % [dir, buildType], '%s/.env' % dir)
+end
