@@ -42,6 +42,8 @@ This project uses [react-native-config](https://github.com/luggit/react-native-c
 ## Fastlane
 Please make sure you update `fastlane/Fastfile` with the correct config and syntax according to [Fastlane docs](https://docs.fastlane.tools/)
 
++ for iOS, please note if `XCODE_AUTO_CODE_SIGN` should be true or false (manually manage code-signing)
+
 Fastlane will load config from `/config.*` file into `.env`
 Secrets are to be provided in command line
 
