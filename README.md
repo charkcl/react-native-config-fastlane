@@ -1,6 +1,8 @@
 ## Motivation
 Provide a template that has RN/typescript/fastlane/config for the community to start. Byebye to the days of 300+ lines of script to build ios/android with hard-coded in config. Bring some 12 factor love to your mobile apps!
 
+Full article [here](https://medium.com/@charkcl/builds-in-react-native-12-factor-approach-with-react-native-config-and-fastlane-aac5fdc66cf9?sk=0574736a43bd5fa7cbec54d8ae01d783)
+
 ## Development environment setup
 Install Node(10.15)
 
